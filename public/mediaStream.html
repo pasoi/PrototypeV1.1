@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Stream</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <script src="sketch.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.14/p5.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+        <script src="http://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.6/addons/p5.dom.js"></script>
+
+</head>
+
+<body>
+    <div class="row1">
+        <video id="video" controls ></video>
+        <br>
+        <button type="button" onclick="startRec()" class="btn btn-success" id="btnStart">START RECORDING</button>
+        <button type="button" onclick="stopRec()" class="btn btn-danger" id="btnStop">STOP RECORDING</button>
+
+    </div>
+
+    <div class="row2">
+        <video id="vid2" controls></video>
+    </div>
+    </div>
+
+    </main>
+
+    <script>
+        function stopRec() {
+            alert("Recording is saved!");
+        }
+
+        let constraintObj = {
+            audio: true,
+            video: {
+                facingMode: "user",
+                width: { min: 640, ideal: 1280, max: 1920 },
+                height: { min: 480, ideal: 720, max: 1080 }
+            }
+        };
+        // width: 1280, height: 720  -- preference only
+        // facingMode: {exact: "user"}
+        // facingMode: "environment"
+
+        //handle older browsers that might implement getUserMedia in some way
+        if (navigator.mediaDevices === undefined) {
+            navigator.mediaDevices = {};
+            navigator.mediaDevices.getUserMedia = function (constraintObj) {
+                let getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+                if (!getUserMedia) {
+                    return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+                }
+                return new Promise(function (resolve, reject) {
+                    getUserMedia.call(navigator, constraintObj, resolve, reject);
+                });
+            }
+        } else {
+            navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    devices.forEach(device => {
+                        console.log(device.kind.toUpperCase(), device.label);
+                        //, device.deviceId
+                    })
+                })
+                .catch(err => {
+                    console.log(err.name, err.message);
+                })
+        }
+        navigator.mediaDevices.getUserMedia(constraintObj)
+            .then(function (mediaStreamObj) {
+                //connect the media stream to the first video element
+                let video = document.querySelector('video');
+                if ("srcObject" in video) {
+                    video.srcObject = mediaStreamObj;
+                } else {
+                    //old version
+                    video.src = window.URL.createObjectURL(mediaStreamObj);
+                }
+
+                video.onloadedmetadata = function (ev) {
+                    //show in the video element what is being captured by the webcam
+                    video.play();
+                };
+
+                //add listeners for saving video/audio
+                let start = document.getElementById('btnStart');
+                let stop = document.getElementById('btnStop');
+                let vidSave = document.getElementById('vid2');
+                let mediaRecorder = new MediaRecorder(mediaStreamObj);
+                let chunks = [];
+
+                start.addEventListener('click', (ev) => {
+                    mediaRecorder.start();
+                    console.log(mediaRecorder.state);
+                })
+                stop.addEventListener('click', (ev) => {
+                    mediaRecorder.stop();
+                    console.log(mediaRecorder.state);
+                });
+                mediaRecorder.ondataavailable = function (ev) {
+                    chunks.push(ev.data);
+                }
+                mediaRecorder.onstop = (ev) => {
+                    let blob = new Blob(chunks, { 'type': 'video/mp4;' });
+                    chunks = [];
+                    let videoURL = window.URL.createObjectURL(blob);
+                    vidSave.src = videoURL;
+                }
+            })
+            .catch(function (err) {
+                console.log(err.name, err.message);
+            });
+
+        /*********************************
+        getUserMedia returns a Promise
+        resolve - returns a MediaStream Object
+        reject returns one of the following errors
+        AbortError - generic unknown cause
+        NotAllowedError (SecurityError) - user rejected permissions
+        NotFoundError - missing media track
+        NotReadableError - user permissions given but hardware/OS error
+        OverconstrainedError - constraint video settings preventing
+        TypeError - audio: false, video: false
+        *********************************/
+    </script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
