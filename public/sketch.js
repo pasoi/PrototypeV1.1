@@ -45,3 +45,7 @@ socket.emit('mouse', data);
 
 function draw(){
 }
+
+function clearSketch(){
+    clear();
+}
