@@ -61,7 +61,7 @@ function clearSketch(){
 function draw(ctx,x,y) {
   ctx.beginPath();
   ctx.lineWidth = 5;
-  ctx.fillStyle = "#FF0000";
+  ctx.strokeStyle = "#ff0000";
   ctx.moveTo(lastX,lastY);
   ctx.lineTo(x,y);
   ctx.closePath();

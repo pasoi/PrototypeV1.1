@@ -1,5 +1,6 @@
 canvas{
   position: absolute;
+  z-index: 20;
 }
 
 .form-container{
