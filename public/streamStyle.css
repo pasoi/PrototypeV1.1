@@ -1,0 +1,78 @@
+
+body {
+    overflow: hidden;
+  }
+  .main{
+    display: flex;
+    height: 90vh;
+    flex-direction: row ;
+    object-fit: fill;
+  }
+  
+  .chat{
+    display: flex;
+    background: green;
+    flex: 1 1 auto;
+  }
+  
+  .streamContainer{
+    display: flex;
+    flex: 4 1 auto;
+  }
+  #stream{
+    position: relative;
+    min-width:100% !important;
+    height:100% !important;
+    margin: 0;
+    padding: 0;
+  
+  }
+  #btnStop, #btnStart{
+    margin-left: .5%;
+    text-align: center;
+    margin-top: 0;
+    width: 200px;
+  
+  }
+  /**
+   * Fix user-agent
+   */
+  
+   * {
+    box-sizing: border-box;
+  }
+  
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /**
+   * Canvas
+   */
+  
+  .whiteboard {
+    position: fixed;
+    min-width:90% !important;
+    height:100% !important;
+    margin: 0;
+    padding: 0;
+    z-index: 0;
+  }
+  
+  .colors {
+    position: fixed;
+  }
+  
+  .color {
+    display: inline-block;
+    height: 48px;
+    width: 48px;
+  }
+  
+  .color.black { background-color: black; }
+  .color.red { background-color: red; }
+  .color.green { background-color: green; }
+  .color.blue { background-color: blue; }
+  .color.yellow { background-color: yellow; }
