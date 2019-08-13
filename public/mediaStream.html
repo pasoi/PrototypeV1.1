@@ -12,12 +12,12 @@
 </head>
 
 <body>
-
     <div class="main">
-
         <div class="streamContainer">
+            <div class="cursor"></div>
             <video id="stream" controls></video>
             <canvas class="whiteboard"></canvas>
+
         </div>
 
         <div class="chat">
@@ -25,8 +25,6 @@
         </div>
 
     </div>
-
-
 
 
     <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
@@ -45,16 +43,21 @@
 
     </div>
     <div class="colors">
-        <div class="color black"></div>
-        <div class="color red"></div>
+        <div class="color black">
+        </div>
+        <div class="color red"  onclick="changeToRed()"></div>
         <div class="color green"></div>
         <div class="color blue"></div>
         <div class="color yellow"></div>
 
+        
         <script>
             function stopRec() {
                 alert("Recording is saved!");
             }
+
+
+
 
             ////----------Canvas Functions-----------////
             var canvas = document.getElementsByClassName('whiteboard')[0];
@@ -171,7 +174,7 @@
 
         <script src="/socket.io/socket.io.js"></script>
         <script src="/sketch.js"></script>
-        
+
 </body>
 
 </html>
