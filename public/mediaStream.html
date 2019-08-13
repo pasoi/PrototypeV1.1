@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Socket.IO whiteboard</title>
+    <title>Telementoring Web Application</title>
     <link rel="stylesheet" href="streamStyle.css">
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -28,155 +28,147 @@
 
 
     <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
-        
-            <button type="button" onclick="startRec()" class="btn btn-success" id="btnStart">START
-                RECORDING</button>
-            <button type="button" onclick="stopRec()" class="btn btn-danger" id="btnStop">STOP RECORDING</button>
 
-            <button type="button" onclick="clearCanvas()" class="btn btn-danger" id="btnClear">Clear</button>
-            <button type="button" onclick="snap()" class="btn btn-danger" id="btnSnap">Snap</button>
+        <button type="button" onclick="startRec()" class="btn btn-success" id="btnStart">START RECORDING</button>
+        <button type="button" onclick="stopRec()" class="btn btn-danger" id="btnStop">STOP RECORDING</button>
 
-        </div>
-        <!-- <div class="btn-group mr-2" role="group" aria-label="Second group">
-            <button type="button" onclick="clearCanvas()" class="btn btn-danger" id="btnClear">Clear</button>
-            <button type="button" onclick="snap()" class="btn btn-danger" id="snapShot">Snap</button>
-
-        </div> -->
-    </div>
+        <button type="button" onclick="clearCanvas()" class="btn btn-danger" id="btnClear">CLEAR</button>
+        <button type="button" onclick="snap()" class="btn btn-danger" id="btnSnap">SNAPSHOT</button>
 
     </div>
+
     <div class="colors">
         <div class="color black">
         </div>
-        <div class="color red"  onclick="changeToRed()"></div>
+        <div class="color red" onclick="changeToRed()"></div>
         <div class="color green"></div>
         <div class="color blue"></div>
         <div class="color yellow"></div>
+    </div>
 
-        
-        <script>
-            function stopRec() {
-                alert("Recording is saved!");
+    <script>
+        function stopRec() {
+            alert("Recording is saved!");
+        }
+
+
+
+
+        ////----------Canvas Functions-----------////
+        var canvas = document.getElementsByClassName('whiteboard')[0];
+        var context = canvas.getContext('2d');
+
+        function clearCanvas() {
+            context.clearRect(0, 0, canvas.width, canvas.height)
+        }
+
+
+        ////----------Stream Functions---------////
+        let constraintObj = {
+            audio: true,
+            video: {
+                facingMode: "user",
+                width: { min: 640, ideal: 1280, max: 1920 },
+                height: { min: 480, ideal: 720, max: 1080 }
             }
+        };
+        // width: 1280, height: 720  -- preference only
+        // facingMode: {exact: "user"}
+        // facingMode: "environment"
 
-
-
-
-            ////----------Canvas Functions-----------////
-            var canvas = document.getElementsByClassName('whiteboard')[0];
-            var context = canvas.getContext('2d');
-
-            function clearCanvas() {
-                context.clearRect(0, 0, canvas.width, canvas.height)
-            }
-
-
-            ////----------Stream Functions---------////
-            let constraintObj = {
-                audio: true,
-                video: {
-                    facingMode: "user",
-                    width: { min: 640, ideal: 1280, max: 1920 },
-                    height: { min: 480, ideal: 720, max: 1080 }
+        //handle older browsers that might implement getUserMedia in some way
+        if (navigator.mediaDevices === undefined) {
+            navigator.mediaDevices = {};
+            navigator.mediaDevices.getUserMedia = function (constraintObj) {
+                let getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+                if (!getUserMedia) {
+                    return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
                 }
-            };
-            // width: 1280, height: 720  -- preference only
-            // facingMode: {exact: "user"}
-            // facingMode: "environment"
-
-            //handle older browsers that might implement getUserMedia in some way
-            if (navigator.mediaDevices === undefined) {
-                navigator.mediaDevices = {};
-                navigator.mediaDevices.getUserMedia = function (constraintObj) {
-                    let getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
-                    if (!getUserMedia) {
-                        return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
-                    }
-                    return new Promise(function (resolve, reject) {
-                        getUserMedia.call(navigator, constraintObj, resolve, reject);
-                    });
-                }
-            } else {
-                navigator.mediaDevices.enumerateDevices()
-                    .then(devices => {
-                        devices.forEach(device => {
-                            console.log(device.kind.toUpperCase(), device.label);
-                            //, device.deviceId
-                        })
-                    })
-                    .catch(err => {
-                        console.log(err.name, err.message);
-                    })
-            }
-            navigator.mediaDevices.getUserMedia(constraintObj)
-                .then(function (mediaStreamObj) {
-                    //connect the media stream to the first video element
-                    let video = document.querySelector('video');
-                    if ("srcObject" in video) {
-                        video.srcObject = mediaStreamObj;
-                    } else {
-                        //old version
-                        video.src = window.URL.createObjectURL(mediaStreamObj);
-                    }
-
-                    video.onloadedmetadata = function (ev) {
-                        //show in the video element what is being captured by the webcam
-                        video.play();
-                    };
-
-                    //add listeners for saving video/audio
-                    let start = document.getElementById('btnStart');
-                    let stop = document.getElementById('btnStop');
-                    let vidSave = document.getElementById('clip');
-                    let mediaRecorder = new MediaRecorder(mediaStreamObj);
-                    let chunks = [];
-
-                    start.addEventListener('click', (ev) => {
-                        mediaRecorder.start();
-                        console.log(mediaRecorder.state);
-                    })
-                    stop.addEventListener('click', (ev) => {
-                        mediaRecorder.stop();
-                        console.log(mediaRecorder.state);
-                    });
-                    mediaRecorder.ondataavailable = function (ev) {
-                        chunks.push(ev.data);
-                    }
-                    mediaRecorder.onstop = (ev) => {
-                        let blob = new Blob(chunks, { 'type': 'video/mp4;' });
-                        chunks = [];
-                        let videoURL = window.URL.createObjectURL(blob);
-                        vidSave.src = videoURL;
-                    }
-                })
-                .catch(function (err) {
-                    console.log(err.name, err.message);
+                return new Promise(function (resolve, reject) {
+                    getUserMedia.call(navigator, constraintObj, resolve, reject);
                 });
+            }
+        } else {
+            navigator.mediaDevices.enumerateDevices()
+                .then(devices => {
+                    devices.forEach(device => {
+                        console.log(device.kind.toUpperCase(), device.label);
+                        //, device.deviceId
+                    })
+                })
+                .catch(err => {
+                    console.log(err.name, err.message);
+                })
+        }
+        navigator.mediaDevices.getUserMedia(constraintObj)
+            .then(function (mediaStreamObj) {
+                //connect the media stream to the first video element
+                let video = document.querySelector('video');
+                if ("srcObject" in video) {
+                    video.srcObject = mediaStreamObj;
+                } else {
+                    //old version
+                    video.src = window.URL.createObjectURL(mediaStreamObj);
+                }
 
-            /*********************************
-            getUserMedia returns a Promise
-            resolve - returns a MediaStream Object
-            reject returns one of the following errors
-            AbortError - generic unknown cause
-            NotAllowedError (SecurityError) - user rejected permissions
-            NotFoundError - missing media track
-            NotReadableError - user permissions given but hardware/OS error
-            OverconstrainedError - constraint video settings preventing
-            TypeError - audio: false, video: false
-            *********************************/
-        </script>
-        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
-            integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
-            crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
-            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
-            crossorigin="anonymous"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
-            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
-            crossorigin="anonymous"></script>
+                video.onloadedmetadata = function (ev) {
+                    //show in the video element what is being captured by the webcam
+                    video.play();
+                };
 
-        <script src="/socket.io/socket.io.js"></script>
-        <script src="/sketch.js"></script>
+                //add listeners for saving video/audio
+                let start = document.getElementById('btnStart');
+                let stop = document.getElementById('btnStop');
+                let vidSave = document.getElementById('clip');
+                let mediaRecorder = new MediaRecorder(mediaStreamObj);
+                let chunks = [];
+
+                start.addEventListener('click', (ev) => {
+                    mediaRecorder.start();
+                    console.log(mediaRecorder.state);
+                })
+                stop.addEventListener('click', (ev) => {
+                    mediaRecorder.stop();
+                    console.log(mediaRecorder.state);
+                });
+                mediaRecorder.ondataavailable = function (ev) {
+                    chunks.push(ev.data);
+                }
+                mediaRecorder.onstop = (ev) => {
+                    let blob = new Blob(chunks, { 'type': 'video/mp4;' });
+                    chunks = [];
+                    let videoURL = window.URL.createObjectURL(blob);
+                    vidSave.src = videoURL;
+                }
+            })
+            .catch(function (err) {
+                console.log(err.name, err.message);
+            });
+
+        /*********************************
+        getUserMedia returns a Promise
+        resolve - returns a MediaStream Object
+        reject returns one of the following errors
+        AbortError - generic unknown cause
+        NotAllowedError (SecurityError) - user rejected permissions
+        NotFoundError - missing media track
+        NotReadableError - user permissions given but hardware/OS error
+        OverconstrainedError - constraint video settings preventing
+        TypeError - audio: false, video: false
+        *********************************/
+    </script>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+        integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+        integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+        crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+        integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+        crossorigin="anonymous"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/sketch.js"></script>
 
 </body>
 
