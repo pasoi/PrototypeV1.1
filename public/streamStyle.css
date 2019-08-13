@@ -27,7 +27,7 @@ body {
   padding: 0;
 
 }
-#btnStop, #btnStart{
+#btnStop, #btnStart, #btnClear, #btnSnap{
   margin-left: .5%;
   text-align: center;
   margin-top: 0;
